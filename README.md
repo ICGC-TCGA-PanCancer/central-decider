@@ -23,7 +23,14 @@ The Decider takes cgi get requests and forms responses based on information in t
 ###Cloning Repo
       cd /usr/lib/cgi-bin/;
       git clone <central-decider>
-      
+
+##Get URL parameters
+
+         workflow-name: as would appear to seqware and in the metadata
+         donor: can either be a number for the number of results or a list of donors
+         gnos-repo: the repos you intend on pulling the aligned BAMs from
+         test: if specified the the database will not record the sample that has been scheduled 
+     
 ##Sample CGI URL
      http://<hostname>/cgi-bin/central-decider/donor-vcf?workflow-name=SangerPancancerCgpCnIndelSnvStr&donor=1&gnos-repo=https://gtrepo-ebi.annailabs.com/
      

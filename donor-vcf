@@ -30,6 +30,10 @@ my $q = CGI->new;
 my $workflow_name = $q->param('workflow-name');
 my @donors = $q->param('donor');
 my $gnos_repo = $q->param('gnos-repo');
+my $test = $q->param('test');
+
+say 'test' if (defined $test);
+exit;
 
 unless (defined($workflow_name) and @donors and defined($gnos_repo)) {
     say "Parameters incorrect.\n
@@ -37,6 +41,7 @@ unless (defined($workflow_name) and @donors and defined($gnos_repo)) {
          workflow-name: as would appear to seqware and in the metadata\n
          donor: can either be a number for the number of results or a list of donors\n
          gnos-repo: the repos you intend on pulling the aligned BAMs from\n
+         test: if specified the the database will not record the sample that has been scheduled 
          \n 
          EXAMPLE:\n
          http://localhost/cgi-bin/schedule/donor-vcf?workflow-name=SangerPancancerCgpCnIndelSnvStr&donor=BOCA-UK::CGP_donor_1635843&donor=BOCA-UK::CGP_donor_1635844&gnos-repo=https://gtrepo-ebi.annailabs.com/";
@@ -64,7 +69,7 @@ my $workflow = Workflow::VCF->new($workflow_name);
 
 my $schedule_donors = $workflow->generate_run_parameters($aligned_sets);
 
-add_donors_as_scheduled($dbh, $schedule_donors, $workflow_name, $gnos_repo);
+add_donors_as_scheduled($dbh, $schedule_donors, $workflow_name, $gnos_repo) unless(defined $test);
 
 print to_json( $schedule_donors, { ascii => 1, pretty => 1 } );
 
