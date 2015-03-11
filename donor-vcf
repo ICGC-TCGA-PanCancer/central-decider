@@ -5,8 +5,6 @@ use warnings;
 
 use feature qw(say);
 
-use DBI;
-use DBI qw(:sql_types);
 use DBD::SQLite;
 
 use CGI;
