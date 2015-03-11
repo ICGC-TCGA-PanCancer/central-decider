@@ -34,7 +34,7 @@ The Decider takes cgi get requests and forms responses based on information in t
 ##Sample CGI URL
      http://<hostname>/cgi-bin/central-decider/donor-vcf?workflow-name=SangerPancancerCgpCnIndelSnvStr&donor=1&gnos-repo=https://gtrepo-ebi.annailabs.com/
      
-This will return back one donors worth of information to be used in combination with a workflow.ini template. Specific donors can be specified by repeating the donor parameter with different values instead of specifying the number of donors worth of information you would like.
+This will return back one donors worth of information to be used in combination with a workflow.ini template. Specific donors can be specified by repeating the donor parameter with different donors (format <project_code>::<donor_id>) instead of specifying the number of donors worth of information you would like.
      
 If a number is specified that number of donors will be returned. Once a donor has been sent out using this method it will not be sent out again unless it has not been completed and it has been over 30 days since it has been scheduled.  
 
