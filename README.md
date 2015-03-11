@@ -33,4 +33,13 @@ If a number is specified that number of donors will be returned. Once a donor ha
 
 ##Blacklist
 This file should contain a list of donors that should not be scheduled. The main reaons for this is because a list of donors has been reserved to be ran at a particular location. The file should contain two columns seperated by white space - project_code and donor_id;
+
+##Maintaining SQLite Database:
+       
+###Logging in: 
+      sqlite3 running.db
+###Creating schema
+      CREATE TABLE scheduled (id integer primary key autoincrement , workflow_name varchar(255), project varchar(255), donor_id varchar(255), gnos_repo varchar(255), dt datetime default current_timestamp); 
+
+Make sure this table is empty if running the decider for the first time. 
       
