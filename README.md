@@ -4,21 +4,13 @@ This tool is intended to be used to schedule VCF workflows for the PanCancer pro
 The Decider takes cgi get requests and forms responses based on information in the pancancer.info Elasticsearch database. The Decider itself has a SQLite database in order to keep track of what has been scheduled. 
 
 ## installation
-
-###Install Perl Modules:
-      sudo cpan
-           install DBD::SQLite
-                   JSON
-                   CGI
-                   IPC::System::Simple
-                   Carp::Always
-                   Data::Dumper
+      Spin up a ubuntu 14.04 VM
+      
+      sudo apt-get update
+      sudo apt-get install make gcc libdbd-sqlite3-perl libjson-perl apache2 libcgi-session-perl libipc-system-simple-perl libcarp-always-perl libdata-dumper-simple-perl sqlite3 libsqlite3-dev
 
 ###Enable Apache CGI 
       sudo a2enmod cgi
- 
-###Install SQLite
-      sudo apt-get install sqlite3 libsqlite3-dev
       
 ###Cloning Repo
       cd /usr/lib/cgi-bin/;
