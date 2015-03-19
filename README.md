@@ -7,7 +7,7 @@ The Decider takes cgi get requests and forms responses based on information in t
       Spin up a ubuntu 14.04 VM
       
       sudo apt-get update
-      sudo apt-get install make gcc libdbd-sqlite3-perl libjson-perl apache2 libcgi-session-perl libipc-system-simple-perl libcarp-always-perl libdata-dumper-simple-perl libio-socket-ssl-perl sqlite3 libsqlite3-dev git cpan
+      sudo apt-get install make gcc libdbd-sqlite3-perl libjson-perl apache2 libcgi-session-perl libipc-system-simple-perl libcarp-always-perl libdata-dumper-simple-perl libio-socket-ssl-perl sqlite3 libsqlite3-dev git cpan apache2-utils
 
       sudo cpan
          install Search::Elasticsearch
@@ -18,6 +18,18 @@ The Decider takes cgi get requests and forms responses based on information in t
 ###Cloning Repo
       cd /usr/lib/cgi-bin/;
       git clone <central-decider>
+
+##Adding Apache authentication 
+      sudo htpasswd -c /var/passwd/passwords
+      sudo vim /etc/apache2/httpd.conf
+      Addto directory:
+            AuthType Basic
+            AuthName "Pancancer Metadata"
+            AuthUserFile /var/passwd/passwords
+            Require user pancancer
+      sudo service apache2 restart
+      
+      
 
 ##Get URL parameters
 
