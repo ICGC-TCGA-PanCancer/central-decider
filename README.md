@@ -9,9 +9,6 @@ The Decider takes cgi get requests and forms responses based on information in t
       sudo apt-get update
       sudo apt-get install make gcc libconfig-simple-perl libdbd-sqlite3-perl libjson-perl apache2 libcgi-session-perl libipc-system-simple-perl libcarp-always-perl libdata-dumper-simple-perl libio-socket-ssl-perl sqlite3 libsqlite3-dev git cpan
 
-      sudo cpan
-         install Search::Elasticsearch
-
 ###Enable Apache CGI 
       sudo a2enmod cgi
       
