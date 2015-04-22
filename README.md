@@ -1,11 +1,26 @@
 # Central Decider
-This tool is intended to be used to schedule VCF workflows for the PanCancer project. It reads from the centralized Elasticsearch  database and keeps track of what has been scheduled in one central location. 
+This tool is intended to be used to schedule VCF and BWA workflows for the PanCancer project. The tool pulls information from the centralized Elasticsearch database and keeps track of what has been scheduled in one central location. 
 
 The Decider takes cgi get requests and forms responses based on information in the pancancer.info Elasticsearch database. The Decider itself has a SQLite database in order to keep track of what has been scheduled. 
 
+The tool can be queried in two distinct ways. The first way is to provide a whitelist of donors or samples. And the second way is to provide the number of results you would like. 
+
+#Option 1 - Whitlist
+If you are providing a whitelist the central decider will return the infromation required to generate an INI to run the sample for each sample that should be run. If the get paramerter "force" is used, it will return all INI's regardless.
+
+In this case the system will not record that the ini files were retrieved and will be able to be queried as many times as desired.
+
+#Option 2 - specifying number of INI's
+If the number of donors is specified, without a whitelist, it will return the specified number of donors unless fewer are available. 
+
+With this method the default is for the decider to record that information was sent out in a database table. It will not resend the same INI 30 days. If the INI had been processed and the sample was completed within the 30 days it will never be resent (almost all of them should fall in this catigory).  
+
 ## installation
-      Spin up a ubuntu 14.04 VM
+
+###Environment
+      Spin up a ubuntu 14.04 VM. This interface requires minimal CPU and RAM. I have been using a Micro instance on AWS to run the decider.
       
+###Installing Packages
       sudo apt-get update
       sudo apt-get install make gcc libconfig-simple-perl libdbd-sqlite3-perl libjson-perl apache2 libcgi-session-perl libipc-system-simple-perl libcarp-always-perl libdata-dumper-simple-perl libio-socket-ssl-perl sqlite3 libsqlite3-dev git cpan
 
@@ -33,7 +48,8 @@ The Decider takes cgi get requests and forms responses based on information in t
          workflow-name: as would appear to seqware and in the metadata
          donor: can either be a number for the number of results or a list of donors
          gnos-repo: the repos you intend on pulling the aligned BAMs from
-         test: if specified the the database will not record the sample that has been scheduled 
+         test: if specified the the database will not record the sample that has been scheduled
+         force: if specified it will return samples wether or not they have already been completed 
      
 ##Sample CGI URL
      http://<hostname>/cgi-bin/central-decider/donor-vcf?workflow-name=SangerPancancerCgpCnIndelSnvStr&donor=1&gnos-repo=https://gtrepo-ebi.annailabs.com/
