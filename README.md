@@ -19,6 +19,18 @@ The Decider takes cgi get requests and forms responses based on information in t
       cd /usr/lib/cgi-bin/;
       git clone <central-decider>
 
+##Adding Apache authentication 
+      sudo htpasswd -c /var/passwd/passwords
+      sudo vim /etc/apache2/httpd.conf
+      Addto directory:
+            AuthType Basic
+            AuthName "Pancancer Metadata"
+            AuthUserFile /var/passwd/passwords
+            Require user pancancer
+      sudo service apache2 restart
+      
+      
+
 ##Get URL parameters
 
          workflow-name: as would appear to seqware and in the metadata
