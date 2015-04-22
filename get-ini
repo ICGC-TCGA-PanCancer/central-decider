@@ -1,0 +1,181 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use feature qw(say);
+
+use DBI;
+use DBD::SQLite;
+
+use CGI;
+use JSON;
+
+use IPC::System::Simple;
+use autodie qw(:all);
+use Carp::Always;
+
+use Config::Simple;
+
+use GlobalGNOS::Search;
+use Workflow::VCF;
+
+use Fcntl qw(:flock);
+
+use Data::Dumper;
+
+my $elasticsearch_url = 'http://pancancer.info/elasticsearch/pcawg_es/';
+
+print CGI->header("text/javascript");
+
+my $q = CGI->new;
+
+my $workflow_name = $q->param('workflow-name');
+my @donors = $q->param('donor');
+my $gnos_repo = $q->param('gnos-repo');
+my $test = $q->param('test');
+my $training_set_two = $q->param('training-set-two');
+
+unless (defined($workflow_name) and @donors and defined($gnos_repo)) {
+    say "Parameters incorrect.\n
+         USAGE:\n
+         workflow-name: as would appear to seqware and in the metadata\n
+         donor: can either be a number for the number of results or a list of donors\n
+         gnos-repo: the repos you intend on pulling the aligned BAMs from\n
+         test: if specified the the database will not record the sample that has been scheduled 
+         \n 
+         EXAMPLE:\n
+         http://localhost/cgi-bin/central-decider/get-ini?workflow-name=SangerPancancerCgpCnIndelSnvStr&donor=BOCA-UK::CGP_donor_1635843&donor=BOCA-UK::CGP_donor_1635844&gnos-repo=https://gtrepo-ebi.annailabs.com/";
+    exit;
+}
+
+my $cfg = new Config::Simple('workflow_map.cfg');
+my $config = $cfg->vars();
+
+my @config_workflows = grep {$config->{$_} ne '0'} keys %{$config};
+my %candidate_workflows = map {(split /\./, $_)[1]  => (split /\./, $_)[0]  } @config_workflows;
+
+my $workflow_type = $candidate_workflows{$workflow_name};
+unless ( $workflow_type) {
+    say 'Please check workflow-name';
+    exit;
+}
+
+my $workflow_name_abbreviation = $config->{"$workflow_type.$workflow_name"};
+
+
+#Using lock file so that we don't have problems with concurrancy
+open(my $lock, '<', 'running.lock'); 
+flock($lock, LOCK_EX);
+
+
+my $dbh = DBI->connect('dbi:SQLite:dbname=running.db', '', '', {
+  AutoCommit => 0,
+  RaiseError => 0,
+}) or die $DBI::errstr;
+
+my $blacklist = read_blacklist($workflow_type, $workflow_name_abbreviation);
+
+my ($already_scheduled, $GS);
+if ( $workflow_type eq 'vcf') {
+    $already_scheduled = get_scheduled_donors_vcf($dbh, $workflow_name, $training_set_two);
+    
+    if (!$test) {
+        $blacklist = (defined $blacklist) ? unique( $blacklist, $already_scheduled) : $already_scheduled;
+    }
+    else {
+        $blacklist = {};
+    }
+    $GS = GlobalGNOS::Search->new( $elasticsearch_url, $workflow_name, $gnos_repo);
+
+    my $aligned_sets = $GS->get_aligned_sets( \@donors, $blacklist );
+    
+    my $workflow = Workflow::VCF->new($workflow_name);
+   
+    my $schedule_donors = $workflow->generate_run_parameters($aligned_sets);
+   
+    add_donors_scheduled_vcf($dbh, $schedule_donors, $workflow_name, $gnos_repo) unless (defined $test);
+   
+    print to_json( $schedule_donors, { ascii => 2, pretty => 1 } );
+
+} 
+elsif ($workflow_type eq 'bam') {
+
+
+}
+
+$dbh->disconnect();
+
+flock $lock, LOCK_UN;
+close $lock;
+
+exit;
+
+sub read_blacklist {
+    my ($workflow_type, $worklow_name_abbreviation) = @_;
+
+    my $file_path = "blacklist/$workflow_name_abbreviation-$workflow_type";
+
+    return undef unless (-r $file_path);
+
+    open my $fh, '<', $file_path;
+
+    my %blacklist;
+    if ($workflow_type eq 'vcf') {
+        while (my $row = <$fh>) {
+            my ($project, $donor_id) = split ' ', $row;
+
+            #Remove trailing and leading whitespace
+            $project =~ s/^\s+|\s+$//g;
+            $donor_id =~ s/^\s+|\s+$//g;
+
+            $blacklist->{"$project\:\:$donor_id"} = 1;
+        }
+
+    } 
+    elsif ($workflow_type eq 'bwa') {
+        while (my $row = <$fh> ) {
+
+           # still need to determine format of bwa blacklist
+        }
+
+    }
+    close $fh;
+
+    return [keys %blacklist];
+}
+
+sub get_scheduled_donors_vcf {
+   my ($dbh, $workflow_name) = @_;
+  
+   my $query = "SELECT project, donor_id FROM vcf_scheduled WHERE workflow_name = \'$workflow_name\' AND dt >  date('NOW') - 30";
+   my $rows = $dbh->selectall_arrayref($query);
+   
+   my %donors;
+   foreach my $row (@{$rows}) {  
+      $donors{"$row->[0]::$row->[1]"} = 1;
+   }
+
+   return \%donors;
+}
+
+sub add_donors_scheduled_vcf {
+    my ($dbh, $schedule_donors, $workflow_name, $gnos_repo) = @_;
+
+    my $sth = $dbh->prepare("INSERT INTO vcf_scheduled (workflow_name, project, donor_id, gnos_repo, analysis_center) VALUES (?, ?, ?, ?, ?)");
+
+    my ($project_code, $donor_id);
+    foreach my $donor (@$schedule_donors) {
+        $sth->execute( $workflow_name, 
+                          $donor->{project_code},
+                          $donor->{donor_id},
+                          $gnos_repo );
+    }
+
+    return $dbh->commit();
+}
+
+sub unique {
+    my %seen;
+    grep { !$seen{$_}++ } @_;
+}

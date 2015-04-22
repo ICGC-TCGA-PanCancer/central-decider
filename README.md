@@ -7,7 +7,7 @@ The Decider takes cgi get requests and forms responses based on information in t
       Spin up a ubuntu 14.04 VM
       
       sudo apt-get update
-      sudo apt-get install make gcc libdbd-sqlite3-perl libjson-perl apache2 libcgi-session-perl libipc-system-simple-perl libcarp-always-perl libdata-dumper-simple-perl libio-socket-ssl-perl sqlite3 libsqlite3-dev git cpan
+      sudo apt-get install make gcc libconfig-simple-perl libdbd-sqlite3-perl libjson-perl apache2 libcgi-session-perl libipc-system-simple-perl libcarp-always-perl libdata-dumper-simple-perl libio-socket-ssl-perl sqlite3 libsqlite3-dev git cpan
 
       sudo cpan
          install Search::Elasticsearch
@@ -41,7 +41,9 @@ This file should contain a list of donors that should not be scheduled. The main
 ###Logging in: 
       sqlite3 running.db
 ###Creating schema
-      CREATE TABLE scheduled (id integer primary key autoincrement , workflow_name varchar(255), project varchar(255), donor_id varchar(255), gnos_repo varchar(255), dt datetime default current_timestamp); 
+      CREATE TABLE vcf_scheduled (id integer primary key autoincrement , workflow_name varchar(255), project varchar(255), donor_id varchar(255), gnos_repo varchar(255), analysis_center varchar(255), dt datetime default current_timestamp); 
+      CREATE TABLE bwa_scheduled (id integer primary key autoincrement , workflow_name varchar(255), project varchar(255), sample_id varchar(255), gnos_repo varchar(255), analysis_center varchar(255), dt datetime default current_timestamp); 
+
 
 Make sure this table is empty if running the decider for the first time. 
       
