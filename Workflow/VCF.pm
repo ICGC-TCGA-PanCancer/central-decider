@@ -25,14 +25,14 @@ sub generate_run_parameters {
        my $donor_info = $donor->{$es_donor_id};
        my ($project_code, $donor_id) = split '::', $es_donor_id;
 
-       my $control_analysis_id = $donor_info->{normal_specimen}{bam_gnos_ao_id};
-       my $control_bam = $donor_info->{normal_specimen}{bam_file_name};
-       my $control_aliquot_id = $donor_info->{normal_specimen}{aliquote_id};
+       my $control_analysis_id = $donor_info->{normal_alignment_status}{bam_gnos_ao_id};
+       my $control_bam = $donor_info->{normal_alignment_status}{bam_file_name};
+       my $control_aliquot_id = $donor_info->{normal_alignment_status}{aliquote_id};
 
 
        my (@tumour_analysis_ids,@tumour_bams, @tumour_aliquot_ids);
 
-       foreach $tumour (@{$donor_info->{aligned_tumor_specimens}}) {              
+       foreach $tumour (@{$donor_info->{tumor_alignment_status}}) {              
             push @tumour_analysis_ids, $tumour->{bam_gnos_ao_id};
             push @tumour_bams, $tumour->{bam_file_name};
             push @tumour_aliquot_ids, $tumour->{aliquot_id};
@@ -40,8 +40,8 @@ sub generate_run_parameters {
   
        my %run_parameters = ( donor_id => $donor_id,
                               project_code => $project_code,
-                              tumourAliquotIds =>  join(',', @tumour_analysis_ids),
-                              tumourAnalysisId => join(',', @tumour_aliquot_ids),
+                              tumourAliquotIds =>  join(',', @tumour_aliquot_ids),
+                              tumourAnalysisId => join(',', @tumour_analysis_ids),
                               tumourBams => join(',', @tumour_bams),
                               controlAnalysisId => $control_analysis_id,
                               controlBam => $control_bam,
