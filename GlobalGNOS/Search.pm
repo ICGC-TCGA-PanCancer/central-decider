@@ -93,7 +93,7 @@ sub get_donors_for_variant_calling {
     elsif ($self->{workflow_name} eq 'DEWrapperWorkflow') {
         $term = {
                        "terms" => {
-                            "flags.is_german_variant_calling_performed" => [
+                            "flags.is_dkfz_variant_calling_performed" => [
                                    "F"
                              ]
                        }       
