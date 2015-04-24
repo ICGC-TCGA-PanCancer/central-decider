@@ -99,6 +99,34 @@ sub get_donors_for_variant_calling {
                        }       
                    };
         push $es_query->{filter}{bool}{must}, $term;
+        $term = {
+                       "terms" => {
+                            "flags.is_embl_variant_calling_performed" => [
+                                   "F"
+                             ]
+                       }       
+                   };
+        push $es_query->{filter}{bool}{must}, $term;
+    }
+    elsif ($self->{workflow_name} eq 'DKFZWorkflow') {
+        $term = {
+                       "terms" => {
+                            "flags.is_dkfz_variant_calling_performed" => [
+                                   "F"
+                             ]
+                       }       
+                   };
+        push $es_query->{filter}{bool}{must}, $term;
+    }
+    elsif ($self->{workflow_name} eq 'EMBLWorkflow') {
+        $term = {
+                       "terms" => {
+                            "flags.is_embl_variant_calling_performed" => [
+                                   "F"
+                             ]
+                       }       
+                   };
+        push $es_query->{filter}{bool}{must}, $term;
     }
     else {
         die 'Incorrect workflow_name';
@@ -128,7 +156,6 @@ sub get_donors_for_variant_calling {
 
     my $query_json = to_json($es_query);
     my $command = 'curl -XGET "'.$self->{elasticsearch_url}."_search?pretty\" -d \'".$query_json."\'";
-
     my $results_json = `$command`;
     my $results = from_json($results_json);
     my @donor_sources = $results->{hits}{hits};
@@ -150,10 +177,10 @@ sub get_aligned_sets {
 
     my %aligned_sets;
     foreach my $donor_id (keys %{$donors}) {
-        my $tumour_specimen = $donors->{$donor_id}{aligned_tumor_specimens};
-        my $normal_specimen = $donors->{$donor_id}{normal_specimen};
-        $aligned_sets{$donor_id} = { aligned_tumor_specimens => $tumour_specimen,
-                                     normal_specimen         => $normal_specimen };
+        my $tumour_specimen = $donors->{$donor_id}{tumor_alignment_status};
+        my $normal_specimen = $donors->{$donor_id}{normal_alignment_status};
+        $aligned_sets{$donor_id} = { tumor_alignment_status  => $tumour_specimen,
+                                     normal_alignment_status => $normal_specimen };
     }
 
     return \%aligned_sets;
