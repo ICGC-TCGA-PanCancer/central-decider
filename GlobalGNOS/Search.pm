@@ -23,8 +23,8 @@ sub new {
     return bless $self, $class;
 }
 
-sub get_donors_for_variant_calling {
-    my ($self, $query_donors, $filter_donors, $training_set_two, $aligned ) = @_;
+sub get_donors {
+    my ($self, $query_donors, $filter_donors, $training_set_two) = @_;
     my $es_query = {
       "filter" => {
          "bool" => {
@@ -45,19 +45,50 @@ sub get_donors_for_variant_calling {
                }
             ],
             "must" => [ 
-               {
+                ]
+          }
+        }
+    };
+    my $term;
+    if ($self->{workflow_name} eq 'Workflow_Bundle_BWA') {
+         $term = [ {
+                     "term" => {
+                         "flags.are_all_tumor_specimens_aligned" => [
+                             "F"
+                          ]
+                      }
+                   },
+                   {
+                     "term" => {
+                         "flags.is_normal_specimen_aligned" => [
+                             "F"
+                          ]
+                      }
+                   }
+                ];
+         push $es_query->{filter}{bool}{must}, {or => $term};
+    } 
+    else {
+        $term =  {
                  "terms" => {
                      "flags.are_all_tumor_specimens_aligned" => [
                              "T"
                      ]
                  }
-              }
-            ]
-          }
-        }
-    };
+              };
+        push $es_query->{filter}{bool}{must}, $term;
+        $term =  {
+                 "terms" => {
+                     "flags.is_normal__specimen_aligned" => [
+                             "T"
+                     ]
+                 }
+              };
+        push $es_query->{filter}{bool}{must}, $term;
 
-    my $term;
+
+    }
+
     if (%{$filter_donors}) {
         $term = {
                      "terms" => { 
@@ -128,19 +159,8 @@ sub get_donors_for_variant_calling {
                    };
         push $es_query->{filter}{bool}{must}, $term;
     }
-    else {
-        die 'Incorrect workflow_name';
-    }
-
-    if ($training_set_two) {
-        $term = {
-                    "terms" => {
-                          "flags.is_train2_donor" => [
-                                 "T"
-                           ]
-                     }       
-                };
-        push $es_query->{filter}{bool}{must}, $term;
+    elsif ($self->{workflow_name} ne 'Workflow_Bundle_BWA') {
+        die "Incorrect workflow_name: $self->{workflow_name}";
     }
 
     if ($self->{gnos_repo}) {
@@ -158,6 +178,7 @@ sub get_donors_for_variant_calling {
     my $command = 'curl -XGET "'.$self->{elasticsearch_url}."_search?pretty\" -d \'".$query_json."\'";
     my $results_json = `$command`;
     my $results = from_json($results_json);
+
     my @donor_sources = $results->{hits}{hits};
     my %donors;
     foreach my $donor_source (@donor_sources) {
@@ -168,40 +189,5 @@ sub get_donors_for_variant_calling {
 
     return \%donors;
 }
-
-sub get_aligned_sets {
-    my ($self, $query_donors, $filter_donors, $training_set_two ) = @_;
-
-    my $aligned = 1;
-    my $donors = get_donors_for_variant_calling($self, $query_donors, $filter_donors, $training_set_two, $aligned);
-
-    my %aligned_sets;
-    foreach my $donor_id (keys %{$donors}) {
-        my $tumour_specimen = $donors->{$donor_id}{tumor_alignment_status};
-        my $normal_specimen = $donors->{$donor_id}{normal_alignment_status};
-        $aligned_sets{$donor_id} = { tumor_alignment_status  => $tumour_specimen,
-                                     normal_alignment_status => $normal_specimen };
-    }
-
-    return \%aligned_sets;
-}
-
-sub get_unaligned_donors {
-    my ($self, $query_donors, $filter_donors, $training_set_two, $analysis_id ) = @_;
-
-    my $aligned = 1;
-    my $donors = get_donors_for_variant_calling($self, $query_donors, $filter_donors, $training_set_two, $aligned);
-
-    my %unaligned_sets;
-    foreach my $donor_id (keys %{$donors}) {
-        my $tumour_specimen = $donors->{$donor_id}{aligned_tumor_specimens};
-        my $normal_specimen = $donors->{$donor_id}{normal_specimen};
-        $unaligned_sets{$analysis_id} = { aligned_tumor_specimens => $tumour_specimen,
-                                     normal_specimen         => $normal_specimen };
-    }
-
-    return \%unaligned_sets;
-}
-
 
 1;

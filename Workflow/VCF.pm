@@ -38,11 +38,11 @@ sub generate_run_parameters {
   
        my %run_parameters = ( donor_id => $donor_id,
                               project_code => $project_code,
-                              tumourAliquotIds =>  join(',', @tumour_aliquot_ids),
-                              tumourAnalysisId => join(',', @tumour_analysis_ids),
-                              tumourBams => join(',', @tumour_bams),
-                              controlAnalysisId => $control_analysis_id,
-                              controlBam => $control_bam,
+                              tumour_aliquot_ids =>  join(',', @tumour_aliquot_ids),
+                              tumour_analysis_id => join(',', @tumour_analysis_ids),
+                              tumour_bams => join(',', @tumour_bams),
+                              control_analysis_id => $control_analysis_id,
+                              control_bam => $control_bam,
                             );
        push @donors_run_parameters, \%run_parameters;
    }

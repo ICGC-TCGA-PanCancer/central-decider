@@ -19,6 +19,7 @@ use Config::Simple;
 
 use GlobalGNOS::Search;
 use Workflow::VCF;
+use Workflow::BAM;
 
 use Fcntl qw(:flock);
 
@@ -35,6 +36,7 @@ my @donors = $q->param('donor');
 my $gnos_repo = $q->param('gnos-repo');
 my $test = $q->param('test');
 my $training_set_two = $q->param('training-set-two');
+
 
 unless (defined($workflow_name) and @donors and defined($gnos_repo)) {
     say "Parameters incorrect.\n
@@ -63,7 +65,6 @@ unless ( $workflow_type) {
 
 my $workflow_name_abbreviation = $config->{"$workflow_type.$workflow_name"};
 
-
 #Using lock file so that we don't have problems with concurrancy
 open(my $lock, '<', 'running.lock'); 
 flock($lock, LOCK_EX);
@@ -76,33 +77,34 @@ my $dbh = DBI->connect('dbi:SQLite:dbname=running.db', '', '', {
 
 my $blacklist = read_blacklist($workflow_type, $workflow_name_abbreviation);
 
-my ($already_scheduled, $GS);
+my $already_scheduled = get_scheduled_donors($dbh, $workflow_name, $training_set_two);
+
+if (!$test) {
+    $blacklist = (defined $blacklist) ? unique( $blacklist, $already_scheduled) : $already_scheduled;
+}
+else {
+    $blacklist = {};
+}
+
+my ( $GS, $donors, $schedule_donors);
 if ( $workflow_type eq 'vcf') {
-    $already_scheduled = get_scheduled_donors_vcf($dbh, $workflow_name, $training_set_two);
-    
-    if (!$test) {
-        $blacklist = (defined $blacklist) ? unique( $blacklist, $already_scheduled) : $already_scheduled;
-    }
-    else {
-        $blacklist = {};
-    }
     $GS = GlobalGNOS::Search->new( $elasticsearch_url, $workflow_name, $gnos_repo);
+    $donors = $GS->get_donors( \@donors, $blacklist );
 
-    my $aligned_sets = $GS->get_aligned_sets( \@donors, $blacklist );
-    
     my $workflow = Workflow::VCF->new($workflow_name);
-   
-    my $schedule_donors = $workflow->generate_run_parameters($aligned_sets);
-   
-    add_donors_scheduled_vcf($dbh, $schedule_donors, $workflow_name, $gnos_repo) unless (defined $test);
-   
-    print to_json( $schedule_donors, { ascii => 2, pretty => 1 } );
-
+    $schedule_donors = $workflow->generate_run_parameters($donors);
 } 
 elsif ($workflow_type eq 'bam') {
+    $GS = GlobalGNOS::Search->new( $elasticsearch_url, $workflow_name);
+    $donors = $GS->get_donors( \@donors, $blacklist );
 
-
+    my $workflow = Workflow::BAM->new($workflow_name);
+    $schedule_donors = $workflow->generate_run_parameters($donors);
 }
+
+add_donors_scheduled($dbh, $schedule_donors, $workflow_name, $gnos_repo) unless (defined $test);
+
+print to_json( $schedule_donors, { ascii => 2, pretty => 1 } );
 
 $dbh->disconnect();
 
@@ -121,45 +123,36 @@ sub read_blacklist {
     open my $fh, '<', $file_path;
 
     my %blacklist;
-    if ($workflow_type eq 'vcf') {
-        while (my $row = <$fh>) {
-            my ($project, $donor_id) = split ' ', $row;
+    while (my $row = <$fh>) {
+        my ($project, $donor_id) = split ' ', $row;
 
-            #Remove trailing and leading whitespace
-            $project =~ s/^\s+|\s+$//g;
-            $donor_id =~ s/^\s+|\s+$//g;
+        #Remove trailing and leading whitespace
+        $project =~ s/^\s+|\s+$//g;
+        $donor_id =~ s/^\s+|\s+$//g;
 
-            $blacklist->{"$project\:\:$donor_id"} = 1;
-        }
-
-    } 
-    elsif ($workflow_type eq 'bwa') {
-        while (my $row = <$fh> ) {
-
-           # still need to determine format of bwa blacklist
-        }
-
+        $blacklist->{"$project\:\:$donor_id"} = 1;
     }
+
     close $fh;
 
     return [keys %blacklist];
 }
 
-sub get_scheduled_donors_vcf {
-   my ($dbh, $workflow_name) = @_;
+sub get_scheduled_donors {
+    my ($dbh, $workflow_name) = @_;
   
-   my $query = "SELECT project, donor_id FROM vcf_scheduled WHERE workflow_name = \'$workflow_name\' AND dt >  date('NOW') - 30";
-   my $rows = $dbh->selectall_arrayref($query);
+    my $query = "SELECT project, donor_id FROM vcf_scheduled WHERE workflow_name = \'$workflow_name\' AND dt >  date('NOW') - 30";
+    my $rows = $dbh->selectall_arrayref($query);
    
-   my %donors;
-   foreach my $row (@{$rows}) {  
-      $donors{"$row->[0]::$row->[1]"} = 1;
-   }
+    my %donors;
+    foreach my $row (@{$rows}) {  
+        $donors{"$row->[0]::$row->[1]"} = 1;
+    }
 
-   return \%donors;
+    return \%donors;
 }
 
-sub add_donors_scheduled_vcf {
+sub add_donors_scheduled {
     my ($dbh, $schedule_donors, $workflow_name, $gnos_repo) = @_;
 
     my $sth = $dbh->prepare("INSERT INTO vcf_scheduled (workflow_name, project, donor_id, gnos_repo, analysis_center) VALUES (?, ?, ?, ?, ?)");
