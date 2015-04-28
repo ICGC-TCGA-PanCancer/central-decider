@@ -24,7 +24,7 @@ sub new {
 }
 
 sub get_donors {
-    my ($self, $query_donors, $filter_donors, $training_set_two) = @_;
+    my ($self, $query_donors, $filter_donors, $force) = @_;
     my $es_query = {
       "filter" => {
          "bool" => {
@@ -49,6 +49,7 @@ sub get_donors {
           }
         }
     };
+
     my $term;
     if ($self->{workflow_name} eq 'Workflow_Bundle_BWA') {
          $term = [ {
@@ -79,7 +80,7 @@ sub get_donors {
         push $es_query->{filter}{bool}{must}, $term;
         $term =  {
                  "terms" => {
-                     "flags.is_normal__specimen_aligned" => [
+                     "flags.is_normal_specimen_aligned" => [
                              "T"
                      ]
                  }
@@ -95,7 +96,8 @@ sub get_donors {
                                "donor_unique_id" => $filter_donors
                      }
                 };
-        push  $es_query->{filter}{bool}{"must_not"}, $term;
+        
+        push $es_query->{filter}{bool}{"must_not"}, $term unless $force;
     }
 
     if ($query_donors->[0] =~ /^\d+$/) {
@@ -111,7 +113,10 @@ sub get_donors {
         push $es_query->{filter}{bool}{must}, $term;
     }
 
-    if ($self->{workflow_name} eq 'SangerPancancerCgpCnIndelSnvStr') {
+    if ($force) {
+       #Retruning even if the INI has been run before
+    }
+    elsif ($self->{workflow_name} eq 'SangerPancancerCgpCnIndelSnvStr') {
         $term = {
                       "terms" => {
                           "flags.is_sanger_variant_calling_performed" => [

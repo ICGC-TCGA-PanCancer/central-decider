@@ -35,7 +35,7 @@ my $workflow_name = $q->param('workflow-name');
 my @donors = $q->param('donor');
 my $gnos_repo = $q->param('gnos-repo');
 my $test = $q->param('test');
-my $training_set_two = $q->param('training-set-two');
+my $force = $q->param('force');
 
 
 unless (defined($workflow_name) and @donors and defined($gnos_repo)) {
@@ -77,7 +77,7 @@ my $dbh = DBI->connect('dbi:SQLite:dbname=running.db', '', '', {
 
 my $blacklist = read_blacklist($workflow_type, $workflow_name_abbreviation);
 
-my $already_scheduled = get_scheduled_donors($dbh, $workflow_name, $training_set_two);
+my $already_scheduled = get_scheduled_donors($dbh, $workflow_name);
 
 if (!$test) {
     $blacklist = (defined $blacklist) ? unique( $blacklist, $already_scheduled) : $already_scheduled;
@@ -89,14 +89,14 @@ else {
 my ( $GS, $donors, $schedule_donors);
 if ( $workflow_type eq 'vcf') {
     $GS = GlobalGNOS::Search->new( $elasticsearch_url, $workflow_name, $gnos_repo);
-    $donors = $GS->get_donors( \@donors, $blacklist );
+    $donors = $GS->get_donors( \@donors, $blacklist, $force );
 
     my $workflow = Workflow::VCF->new($workflow_name);
     $schedule_donors = $workflow->generate_run_parameters($donors);
 } 
 elsif ($workflow_type eq 'bam') {
     $GS = GlobalGNOS::Search->new( $elasticsearch_url, $workflow_name);
-    $donors = $GS->get_donors( \@donors, $blacklist );
+    $donors = $GS->get_donors( \@donors, $blacklist, $force );
 
     my $workflow = Workflow::BAM->new($workflow_name);
     $schedule_donors = $workflow->generate_run_parameters($donors);
