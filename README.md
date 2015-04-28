@@ -1,7 +1,7 @@
 # Central Decider
 This tool is intended to be used to schedule VCF and BWA workflows for the PanCancer project. The tool pulls information from the centralized Elasticsearch database and keeps track of what has been scheduled in one central location. 
 
-The Decider takes cgi get requests and forms responses based on information in the pancancer.info Elasticsearch database. The Decider itself has a SQLite database in order to keep track of what has been scheduled. 
+The Decider takes http (CGI) get requests and forms responses based on information in the pancancer.info Elasticsearch database. The Decider itself has a SQLite database for keeping track of what has been scheduled. 
 
 The tool can be queried in two distinct ways. The first way is to provide a whitelist of donors or samples. And the second way is to provide the number of results you would like. 
 
@@ -60,6 +60,9 @@ If a number is specified that number of donors will be returned. Once a donor ha
 
 ##Blacklist
 This file should contain a list of donors that should not be scheduled. The main reaons for this is because a list of donors has been reserved to be ran at a particular location. The file should contain two columns seperated by white space - project\_code and donor\_id;
+
+## workflow-map.cfg
+This file specifies the workflows and organizes them into the type of workflow (VCF or BAM). This is used by the program to determine how to treat the workflow. When specifying a workflow\_name, the decider will only return results for a specific donor if it has not been completed yet. The only exception to this is the workflow\_name "DEWrapperWorkflow". With this workflow it checks to make sure neither EMBL or DKFZ have been run.
 
 ##Maintaining SQLite Database:
        
