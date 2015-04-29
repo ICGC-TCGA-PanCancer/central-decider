@@ -37,7 +37,6 @@ my $gnos_repo = $q->param('gnos-repo');
 my $test = $q->param('test');
 my $force = $q->param('force');
 
-
 unless (defined($workflow_name) and @donors and defined($gnos_repo)) {
     say "Parameters incorrect.\n
          USAGE:\n

@@ -111,6 +111,7 @@ sub get_donors {
                    }       
                 };
         push $es_query->{filter}{bool}{must}, $term;
+        $es_query->{size} = 100000;
     }
 
     if ($force) {
