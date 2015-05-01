@@ -24,7 +24,7 @@ sub new {
 }
 
 sub get_donors {
-    my ($self, $query_donors, $filter_donors, $force) = @_;
+    my ($self, $query_donors, $filter_donors, $force, $number_of_donors) = @_;
     my $es_query = {
       "filter" => {
          "bool" => {
@@ -90,7 +90,7 @@ sub get_donors {
 
     }
 
-    if (%{$filter_donors}) {
+    if (defined ($filter_donors) && %{$filter_donors}) {
         $term = {
                      "terms" => { 
                                "donor_unique_id" => $filter_donors
@@ -100,7 +100,7 @@ sub get_donors {
         push $es_query->{filter}{bool}{"must_not"}, $term unless $force;
     }
 
-    if ($query_donors->[0] =~ /^\d+$/) {
+    if ($number_of_donors) {
          $es_query->{from} = 0;
          $es_query->{size} = $query_donors->[0];
     }

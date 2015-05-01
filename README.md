@@ -22,7 +22,7 @@ With this method the default is for the decider to record that information was s
       
 ###Installing Packages
       sudo apt-get update
-      sudo apt-get install make gcc libconfig-simple-perl libdbd-sqlite3-perl libjson-perl apache2 libcgi-session-perl libipc-system-simple-perl libcarp-always-perl libdata-dumper-simple-perl libio-socket-ssl-perl sqlite3 libsqlite3-dev git cpan
+      sudo apt-get install make gcc libconfig-simple-perl libdbd-sqlite3-perl libjson-perl apache2 libcgi-session-perl libipc-system-simple-perl libcarp-always-perl libdata-dumper-simple-perl libio-socket-ssl-perl sqlite3 libsqlite3-dev libcapture-tiny-perl git cpan
 
 ###Enable Apache CGI 
       sudo a2enmod cgi
@@ -40,7 +40,15 @@ With this method the default is for the decider to record that information was s
             AuthUserFile /var/passwd/passwords
             Require user pancancer
       sudo service apache2 restart
-      
+
+## Setting up Whitelist
+      mkdir ~/git (this is where the git repo pcawg-operations will be located)
+      cd /usr/lib/cgi-bin/central-decider
+      perl bin/get-whitelist.pl 
+
+## Setup Whitelist cronjob
+      crontab -e  # to edit crontab
+      add line "* 2 * * * perl /usr/lib/cgi-bin/feature/central-decider/bin/get-whitelist.pl" to have the whitelist be updated daily
       
 
 ##Get URL parameters

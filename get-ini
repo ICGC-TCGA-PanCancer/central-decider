@@ -33,15 +33,18 @@ my $q = CGI->new;
 
 my $workflow_name = $q->param('workflow-name');
 my @donors = $q->param('donor');
+my $number_of_donors = $q->param('number-of-donors');
 my $gnos_repo = $q->param('gnos-repo');
 my $test = $q->param('test');
 my $force = $q->param('force');
+my $cloud_env = $q->param('cloud-env');
 
-unless (defined($workflow_name) and @donors and defined($gnos_repo)) {
+unless (defined($workflow_name) and (@donors || $number_of_donors || $cloud_env) and defined($gnos_repo)) {
     say "Parameters incorrect.\n
          USAGE:\n
          workflow-name: as would appear to seqware and in the metadata\n
-         donor: can either be a number for the number of results or a list of donors\n
+         donor: specifying a donor name\n
+         number_of_donors
          gnos-repo: the repos you intend on pulling the aligned BAMs from\n
          test: if specified the the database will not record the sample that has been scheduled 
          \n 
@@ -68,7 +71,6 @@ my $workflow_name_abbreviation = $config->{"$workflow_type.$workflow_name"};
 open(my $lock, '<', 'running.lock'); 
 flock($lock, LOCK_EX);
 
-
 my $dbh = DBI->connect('dbi:SQLite:dbname=running.db', '', '', {
   AutoCommit => 0,
   RaiseError => 0,
@@ -76,7 +78,7 @@ my $dbh = DBI->connect('dbi:SQLite:dbname=running.db', '', '', {
 
 my $blacklist = read_blacklist($workflow_type, $workflow_name_abbreviation);
 
-my $already_scheduled = get_scheduled_donors($dbh, $workflow_name);
+my $already_scheduled = get_scheduled_donors($dbh, $workflow_name) if ($number_of_donors);
 
 if (!$test) {
     $blacklist = (defined $blacklist) ? unique( $blacklist, $already_scheduled) : $already_scheduled;
@@ -85,17 +87,26 @@ else {
     $blacklist = {};
 }
 
+my $pcawg_whitelist_dir = "/home/ubuntu/git/pcawg-operations";
+
 my ( $GS, $donors, $schedule_donors);
 if ( $workflow_type eq 'vcf') {
+    my $donor_whitelist;
+    unless (@donors || $number_of_donors) {
+        $donor_whitelist = get_whitelist($workflow_name, $gnos_repo, $cloud_env );
+    }
+    else {
+        $donor_whitelist = \@donors;
+    }
     $GS = GlobalGNOS::Search->new( $elasticsearch_url, $workflow_name, $gnos_repo);
-    $donors = $GS->get_donors( \@donors, $blacklist, $force );
+    $donors = $GS->get_donors( $donor_whitelist, $blacklist, $force, $number_of_donors );
 
     my $workflow = Workflow::VCF->new($workflow_name);
     $schedule_donors = $workflow->generate_run_parameters($donors);
 } 
 elsif ($workflow_type eq 'bam') {
     $GS = GlobalGNOS::Search->new( $elasticsearch_url, $workflow_name);
-    $donors = $GS->get_donors( \@donors, $blacklist, $force );
+    $donors = $GS->get_donors( \@donors, $blacklist, $force, $number_of_donors);
 
     my $workflow = Workflow::BAM->new($workflow_name);
     $schedule_donors = $workflow->generate_run_parameters($donors);
@@ -111,6 +122,68 @@ flock $lock, LOCK_UN;
 close $lock;
 
 exit;
+
+sub get_whitelist {
+    my ($workflow_name, $gnos_repo, $cloud_env) = @_;
+
+    my $workflow_whitelist_dir;
+    my $variant_calling_whitelist_dir = "$pcawg_whitelist_dir/variant_calling";
+    if ($workflow_name eq "SangerPancancerCgpCnIndelSnvStr") { 
+        $workflow_whitelist_dir = "$variant_calling_whitelist_dir/sanger_workflow/whitelists";
+    } 
+    else {
+        $workflow_whitelist_dir = "$variant_calling_whitelist_dir/dkfz_embl_workflow/whitelists";
+    }
+    my $cloud_env_whitelist_dir = "$workflow_whitelist_dir/$cloud_env";
+
+    die "Cannot find whitelist path: $cloud_env_whitelist_dir" unless (-d $cloud_env_whitelist_dir);
+    my $gnos_name;
+    if ($gnos_repo =~ m/https:\/\/gtrepo-(.*)\.annailabs\.com\/$/) {
+        $gnos_name = $1;
+    }
+     
+    die "Cannot determin gnos name from $gnos_repo" unless($gnos_name);
+
+    opendir(my $dh, $cloud_env_whitelist_dir);
+    my @file_list = grep { !/^\./ && -f "$cloud_env_whitelist_dir/$_" } readdir($dh); 
+    closedir $dh;
+
+    die "Could not find whitelist for $cloud_env_whitelist_dir" unless (@file_list);
+
+    my @donors;
+    foreach my $file_name (@file_list) {
+         my @file_name_parts = split /\./, $file_name;
+
+         next if (scalar @file_name_parts != 4);
+
+         my ($file_cloud_env, $file_date, $file_descriptor, $file_extension) = @file_name_parts;
+         next if $file_extension ne 'txt';
+         next if $file_cloud_env ne $cloud_env;
+         next unless $file_descriptor =~ /from_$gnos_name$/;
+ 
+         my $file_path = "$cloud_env_whitelist_dir/$file_name";
+         add_whitelist(\@donors, $file_path);   
+    }
+    @donors = unique(@donors);
+
+    return \@donors;
+}
+
+sub add_whitelist {
+    my ($donors, $file_path) = @_;
+   
+    open my $fh, '<', $file_path;
+ 
+    while (my $row = <$fh>) {
+        my ($project, $donor_id) = split ' ', $row;
+        #Remove trailing and leading whitespace
+        $project =~ s/^\s+|\s+$//g;
+        $donor_id =~ s/^\s+|\s+$//g;
+        push $donors, "$project\:\:$donor_id";
+    }
+
+    close $fh;
+}
 
 sub read_blacklist {
     my ($workflow_type, $worklow_name_abbreviation) = @_;
