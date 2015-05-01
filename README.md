@@ -5,7 +5,7 @@ The Decider takes http (CGI) get requests and forms responses based on informati
 
 The tool can be queried in two distinct ways. The first way is to provide a whitelist of donors or samples. And the second way is to provide the number of results you would like. 
 
-#Option 1 - Whitlist
+#Option 1 - Whitelist
 If you are providing a whitelist the central decider will return the infromation required to generate an INI to run the sample for each sample that should be run. If the get paramerter "force" is used, it will return all INI's regardless.
 
 In this case the system will not record that the ini files were retrieved and will be able to be queried as many times as desired.
