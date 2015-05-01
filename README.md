@@ -47,6 +47,7 @@ With this method the default is for the decider to record that information was s
 
          workflow-name: as would appear to seqware and in the metadata
          donor: can either be a number for the number of results or a list of donors
+         number_of_donors: To be used if you are not using whitelists. Specifies number of donors worth of results
          gnos-repo: the repos you intend on pulling the aligned BAMs from
          test: if specified the the database will not record the sample that has been scheduled
          force: if specified it will return samples wether or not they have already been completed 
