@@ -52,7 +52,7 @@ With this method the default is for the decider to record that information was s
          force: if specified it will return samples wether or not they have already been completed 
      
 ##Sample CGI URL
-     http://<hostname>/cgi-bin/central-decider/donor-vcf?workflow-name=SangerPancancerCgpCnIndelSnvStr&donor=1&gnos-repo=https://gtrepo-ebi.annailabs.com/
+     http://<hostname>/cgi-bin/central-decider/get-ini?workflow-name=SangerPancancerCgpCnIndelSnvStr&donor=1&gnos-repo=https://gtrepo-ebi.annailabs.com/
      
 This will return back one donors worth of information to be used in combination with a workflow.ini template. Specific donors can be specified by repeating the donor parameter with different donors (format <project_code>::<donor_id>) instead of specifying the number of donors worth of information you would like.
      
