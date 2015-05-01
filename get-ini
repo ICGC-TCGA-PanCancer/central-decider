@@ -42,11 +42,12 @@ my $cloud_env = $q->param('cloud-env');
 unless (defined($workflow_name) and (@donors || $number_of_donors || $cloud_env) and defined($gnos_repo)) {
     say "Parameters incorrect.\n
          USAGE:\n
-         workflow-name: as would appear to seqware and in the metadata\n
-         donor: specifying a donor name\n
-         number_of_donors
-         gnos-repo: the repos you intend on pulling the aligned BAMs from\n
-         test: if specified the the database will not record the sample that has been scheduled 
+         workflow-name: As would appear to seqware and in the metadata\n
+         donor: Specifying a donor name\n
+         number_of_donors: To be used if you are not using whitelists. Specifies number of donors worth of results
+         gnos-repo: The repos you intend on pulling the aligned BAMs from\n
+         test: If specified the the database will not record the sample that has been scheduled 
+         force: To be used when you want it to return INI files for workflows that have already been run
          \n 
          EXAMPLE:\n
          http://localhost/cgi-bin/central-decider/get-ini?workflow-name=SangerPancancerCgpCnIndelSnvStr&donor=BOCA-UK::CGP_donor_1635843&donor=BOCA-UK::CGP_donor_1635844&gnos-repo=https://gtrepo-ebi.annailabs.com/";
