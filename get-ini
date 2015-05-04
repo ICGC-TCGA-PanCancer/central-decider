@@ -136,20 +136,29 @@ sub get_whitelist {
         $workflow_whitelist_dir = "$variant_calling_whitelist_dir/dkfz_embl_workflow/whitelists";
     }
     my $cloud_env_whitelist_dir = "$workflow_whitelist_dir/$cloud_env";
+    unless (-d $cloud_env_whitelist_dir) {
+        say "Cannot find whitelist path: $cloud_env_whitelist_dir";
+        exit;
+    }
 
-    die "Cannot find whitelist path: $cloud_env_whitelist_dir" unless (-d $cloud_env_whitelist_dir);
     my $gnos_name;
     if ($gnos_repo =~ m/https:\/\/gtrepo-(.*)\.annailabs\.com\/$/) {
         $gnos_name = $1;
     }
-     
-    die "Cannot determin gnos name from $gnos_repo" unless($gnos_name);
+
+    unless($gnos_name) {
+        say "Cannot determin gnos name from $gnos_repo";
+        exit;
+    }
 
     opendir(my $dh, $cloud_env_whitelist_dir);
     my @file_list = grep { !/^\./ && -f "$cloud_env_whitelist_dir/$_" } readdir($dh); 
     closedir $dh;
 
-    die "Could not find whitelist for $cloud_env_whitelist_dir" unless (@file_list);
+    unless (@file_list) {
+        say "Could not find whitelist for $cloud_env_whitelist_dir";
+        exit;
+    }
 
     my @donors;
     foreach my $file_name (@file_list) {
