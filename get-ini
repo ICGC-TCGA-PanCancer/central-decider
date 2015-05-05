@@ -102,7 +102,7 @@ if ( $workflow_type eq 'vcf') {
     $GS = GlobalGNOS::Search->new( $elasticsearch_url, $workflow_name, $gnos_repo);
     $donors = $GS->get_donors( $donor_whitelist, $blacklist, $force, $number_of_donors );
 
-    my $workflow = Workflow::VCF->new($workflow_name);
+    my $workflow = Workflow::VCF->new($workflow_name, $gnos_repo);
     $schedule_donors = $workflow->generate_run_parameters($donors);
 } 
 elsif ($workflow_type eq 'bam') {
