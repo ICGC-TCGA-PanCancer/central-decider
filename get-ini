@@ -145,9 +145,12 @@ sub get_whitelist {
     if ($gnos_repo =~ m/https:\/\/gtrepo-(.*)\.annailabs\.com\/$/) {
         $gnos_name = $1;
     }
+    elsif ($gnos_repo eq 'https://cghub.ucsc.edu/') {
+         $gnos_name = 'cghub';
+    }
 
     unless($gnos_name) {
-        say "Cannot determin gnos name from $gnos_repo";
+        say "Cannot determine gnos name from $gnos_repo";
         exit;
     }
 
