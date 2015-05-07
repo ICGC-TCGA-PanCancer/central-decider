@@ -48,7 +48,7 @@ With this method the default is for the decider to record that information was s
 
 ## Setup Whitelist cronjob
       crontab -e  # to edit crontab
-      add line "* 2 * * * perl /usr/lib/cgi-bin/feature/central-decider/bin/get-whitelist.pl" to have the whitelist be updated daily
+      add line "0 2 * * * perl /usr/lib/cgi-bin/feature/central-decider/bin/get-whitelist.pl" to have the whitelist be updated daily at 2am
       
 
 ##Get URL parameters
