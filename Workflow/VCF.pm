@@ -20,7 +20,7 @@ sub new {
 
 sub generate_run_parameters {
    my ($class, $donor, $local_file_dir) = @_;
-   
+  
    my ($upload_gnos_url, $download_key, $upload_key, $gnos_repo);
    if ($self->{download_gnos_repo} eq 'https://cghub.ucsc.edu/') {
         $download_key = 'cghub';
@@ -40,10 +40,10 @@ sub generate_run_parameters {
        my $control_analysis_id = $donor_info->{normal_alignment_status}{aligned_bam}{gnos_id};
        my $control_bam;
        if ($local_file_dir) {
-           $control_bam = $donor_info->{normal_alignment_status}{aligned_bam}{bam_file_name};
+           $control_bam = $local_file_dir.$control_analysis_id.'/'.$donor_info->{normal_alignment_status}{aligned_bam}{bam_file_name};
        }
        else {
-           $control_bam = $loca_file_dir.$control_analysis_id.$donor_info->{normal_alignment_status}{aligned_bam}{bam_file_name};
+           $control_bam = $donor_info->{normal_alignment_status}{aligned_bam}{bam_file_name}; 
        }
        my (@tumour_analysis_ids,@tumour_bams, @tumour_aliquot_ids);
 
@@ -51,7 +51,7 @@ sub generate_run_parameters {
        foreach $tumour (@{$donor_info->{tumor_alignment_status}}) {              
             push @tumour_analysis_ids, $tumour->{aligned_bam}{gnos_id};
             if ($local_file_dir) {
-                push @tumour_bams, $local_file_dir.$tumour->{algined_bam}{gnos_id}.$tumour->{aligned_bam}{bam_file_name};
+                push @tumour_bams, $local_file_dir.$tumour->{aligned_bam}{gnos_id}.'/'.$tumour->{aligned_bam}{bam_file_name};
             }
             else {
                 push @tumour_bams, $tumour->{aligned_bam}{bam_file_name};

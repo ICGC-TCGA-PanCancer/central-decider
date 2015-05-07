@@ -39,6 +39,8 @@ my $test = $q->param('test');
 my $force = $q->param('force');
 my $cloud_env = $q->param('cloud-env');
 my $local_file_dir = $q->param('local-file-dir');
+$local_file_dir =~ s!/*$!/!; # Adds slash if non at end of directory
+
 
 unless (defined($workflow_name) and (@donors || $number_of_donors || $cloud_env) and defined($gnos_repo)) {
     say "Parameters incorrect.\n

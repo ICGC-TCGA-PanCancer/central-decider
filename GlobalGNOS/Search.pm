@@ -189,8 +189,6 @@ sub get_donors {
     my %donors;
     foreach my $donor_source (@donor_sources) {
         foreach my $donor (@{$donor_source}) {
-print Dumper $donor;
-die;
            $donors{$donor->{_id}} = $donor->{_source} if ($donor->{_type} eq 'donor');
         }
     }
