@@ -28,6 +28,7 @@ sub generate_run_parameters {
        my $normal_alignment_status = $donor_info->{normal_alignment_status};
 
        if ($normal_alignment_status->{aligned} eq 'false') {
+#            my $total_lanes           = $donor_info{normal_specimen}{total_lanes};
             my $aliquot_id            = $normal_alinment_status->{aliquote_id};
             my $dcc_specimen_type     = $normal_alignment_status->{dcc_specimen_type};
             my $submitter_sample_id   = $normal_alignment_status->{submitter_sample_id};
@@ -39,7 +40,7 @@ sub generate_run_parameters {
                 push @gnos_metadata_urls,   $bam->{gnos_repo}[0]."cghub/metadata/analysisFull/".$bam->{gnos_id};
                 push @input_bam_paths,      $bam->{gnos_id}.$bam->{bam_file_name};
             }
-    
+            
             push @donor_run_parameters,  { donor_id                    => $donor_id,
                                            project_code                => $project_code,
                                            dcc_specimen_type           => $dcc_specimen_type,

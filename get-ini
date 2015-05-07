@@ -38,16 +38,18 @@ my $gnos_repo = $q->param('gnos-repo');
 my $test = $q->param('test');
 my $force = $q->param('force');
 my $cloud_env = $q->param('cloud-env');
+my $local_file_dir = $q->param('local-file-dir');
 
 unless (defined($workflow_name) and (@donors || $number_of_donors || $cloud_env) and defined($gnos_repo)) {
     say "Parameters incorrect.\n
          USAGE:\n
          workflow-name: As would appear to seqware and in the metadata\n
          donor: Specifying a donor name\n
-         number_of_donors: To be used if you are not using whitelists. Specifies number of donors worth of results
+         number_of_donors: To be used if you are not using whitelists. Specifies number of donors worth of results\n
          gnos-repo: The repos you intend on pulling the aligned BAMs from\n
-         test: If specified the the database will not record the sample that has been scheduled 
-         force: To be used when you want it to return INI files for workflows that have already been run
+         local-file-dir: If specified this directory will be used to generate full paths to the bam files\n
+         test: If specified the the database will not record the sample that has been scheduled\n
+         force: To be used when you want it to return INI files for workflows that have already been run\n
          \n 
          EXAMPLE:\n
          http://localhost/cgi-bin/central-decider/get-ini?workflow-name=SangerPancancerCgpCnIndelSnvStr&donor=BOCA-UK::CGP_donor_1635843&donor=BOCA-UK::CGP_donor_1635844&gnos-repo=https://gtrepo-ebi.annailabs.com/";
@@ -103,14 +105,14 @@ if ( $workflow_type eq 'vcf') {
     $donors = $GS->get_donors( $donor_whitelist, $blacklist, $force, $number_of_donors );
 
     my $workflow = Workflow::VCF->new($workflow_name);
-    $schedule_donors = $workflow->generate_run_parameters($donors);
+    $schedule_donors = $workflow->generate_run_parameters($donors, $local_file_dir);
 } 
 elsif ($workflow_type eq 'bam') {
     $GS = GlobalGNOS::Search->new( $elasticsearch_url, $workflow_name);
     $donors = $GS->get_donors( \@donors, $blacklist, $force, $number_of_donors);
 
     my $workflow = Workflow::BAM->new($workflow_name);
-    $schedule_donors = $workflow->generate_run_parameters($donors);
+    $schedule_donors = $workflow->generate_run_parameters($donors, $local_file_dir);
 }
 
 add_donors_scheduled($dbh, $schedule_donors, $workflow_name, $gnos_repo) unless (defined $test);
