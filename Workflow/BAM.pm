@@ -18,7 +18,7 @@ sub new {
 }
 
 sub generate_run_parameters {
-   my ($class, $donor) = @_;
+   my ($class, $donor, $local_file_dir) = @_;
 
    my @donors_run_parameters;
    foreach my $es_donor_id (keys %{$donor}) {
@@ -38,7 +38,12 @@ sub generate_run_parameters {
             foreach my $bam (@{ $normal_alignment_status->{unaligned_bams} }) {
                 push @gnos_input_file_urls, $bam->{gnos_repo}[0]."cghub/data/analysis/download/".$bam->{gnos_id};
                 push @gnos_metadata_urls,   $bam->{gnos_repo}[0]."cghub/metadata/analysisFull/".$bam->{gnos_id};
-                push @input_bam_paths,      $bam->{gnos_id}.$bam->{bam_file_name};
+                if ($local_file_dir) {
+                    push @input_bam_paths,      $local_file_dir.$bam->{gnos_id}.'/'.$bam->{bam_file_name};
+                }
+                else {
+                    push @input_bam_paths,      $bam->{gnos_id}.'/'.$bam->{bam_file_name};
+                }
             }
             
             push @donor_run_parameters,  { donor_id                    => $donor_id,
@@ -67,7 +72,12 @@ sub generate_run_parameters {
             foreach my $bam (@{ $tumour->{unaligned_bams} }) {
                 push @gnos_input_file_urls, $bam->{gnos_repo}[0]."cghub/data/analysis/download/".$bam->{gnos_id};
                 push @gnos_metadata_urls,   $bam->{gnos_repo}[0]."cghub/metadata/analysisFull/".$bam->{gnos_id};
-                push @input_bam_paths,      $bam->{gnos_id}.$bam->{bam_file_name};
+                if ($local_file_dir) {
+                    push @input_bam_paths, $local_file_dir.$bam->{gnos_id}.'/'.$bam->{bam_file_name};
+                }
+                else {
+                    push @input_bam_paths, $bam->{gnos_id}.'/'.$bam->{bam_file_name};
+                }
             }
   
             my %run_parameters = ( donor_id                 => $donor_id,
