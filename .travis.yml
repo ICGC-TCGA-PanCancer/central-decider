@@ -9,8 +9,8 @@ rvm:
 before_install:
   - git clone git://github.com/travis-perl/helpers ~/travis-perl-helpers
   - source ~/travis-perl-helpers/init
-  - apt-get update
-  - apt-get install -q apache2 sqlite3 libsqlite3-dev
+  - sudo apt-get update
+  - sudo apt-get install -q apache2 sqlite3 libsqlite3-dev
 install:
   - cpanm --quiet --notest --installdeps .
 script: perl -c get-ini
