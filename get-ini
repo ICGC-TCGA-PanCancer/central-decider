@@ -94,15 +94,19 @@ else {
 
 my $pcawg_whitelist_dir = "/home/ubuntu/git/pcawg-operations";
 
+my $donor_whitelist;
+unless (@donors || $number_of_donors) {
+    $donor_whitelist =  ($workflow_type eq 'vcf')? get_whitelist_vcf($workflow_name, $gnos_repo, $cloud_env) :
+                                                   get_whitelist_bam($workflow_name, $cloud_env);
+}
+else {
+    $donor_whitelist = \@donors;
+}
+
+
+
 my ( $GS, $donors, $schedule_donors);
 if ( $workflow_type eq 'vcf') {
-    my $donor_whitelist;
-    unless (@donors || $number_of_donors) {
-        $donor_whitelist = get_whitelist($workflow_name, $gnos_repo, $cloud_env );
-    }
-    else {
-        $donor_whitelist = \@donors;
-    }
     $GS = GlobalGNOS::Search->new( $elasticsearch_url, $workflow_name, $gnos_repo);
     $donors = $GS->get_donors( $donor_whitelist, $blacklist, $force, $number_of_donors );
 
@@ -128,7 +132,50 @@ close $lock;
 
 exit;
 
-sub get_whitelist {
+sub get_whitelist_bam {
+    my ($workflow_name, $cloud_env) = @_;
+
+    my $workflow_whitelist_dir;
+    my $alignment_whitelist_dir = "$pcawg_whitelist_dir/bwa_alignment";
+    unless (-d $alignment_whitelist_dir) {
+         say "Cannot find whitelist path $alignment_whitelist_dir";
+         exit;
+    }
+    
+    my $cloud_env_whitelist_dir = "$alignment_whitelist_dir/$cloud_env";
+    unless (-d $cloud_env_whitelist_dir) {
+        say "Cannot find cloud env path: $cloud_env_whitelist_dir";
+        exit;
+    }
+
+    opendir(my $dh, $cloud_env_whitelist_dir);
+    my @file_list = grep { !/^\./ && -f "$cloud_env_whitelist_dir/$_" } readdir($dh);
+    closedir $dh;
+
+    unless (@file_list) {
+        say "Could not find whitelist for $cloud_env_whitelist_dir";
+        exit;
+    }
+
+    my @donors;
+    foreach my $file_name (@file_list) {
+         my @file_name_parts = split /\./, $file_name;
+
+         next if (scalar @file_name_parts != 4);
+
+         my ($file_cloud_env, $file_date, $file_descriptor, $file_extension) = @file_name_parts;
+         next if $file_extension ne 'txt';
+         next if $file_cloud_env ne $cloud_env;
+
+         my $file_path = "$cloud_env_whitelist_dir/$file_name";
+         add_whitelist(\@donors, $file_path);
+    }
+    @donors = unique(@donors);
+
+    return \@donors;
+}
+
+sub get_whitelist_vcf {
     my ($workflow_name, $gnos_repo, $cloud_env) = @_;
 
     my $workflow_whitelist_dir;
