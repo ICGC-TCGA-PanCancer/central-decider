@@ -34,7 +34,7 @@ sub generate_run_parameters {
             my $submitter_sample_id   = $normal_alignment_status->{submitter_sample_id};
             my $submitter_specimen_id = $normal_alignment_status->{submitter_specimen_id};
 
-            my (@gnos_input_file_urls, @input_bam_paths);
+            my (@gnos_input_file_urls, @input_bam_paths, @gnos_metadata_urls);
             foreach my $bam (@{ $normal_alignment_status->{unaligned_bams} }) {
                 push @gnos_input_file_urls, $bam->{gnos_repo}[0]."cghub/data/analysis/download/".$bam->{gnos_id};
                 push @gnos_metadata_urls,   $bam->{gnos_repo}[0]."cghub/metadata/analysisFull/".$bam->{gnos_id};
@@ -45,7 +45,7 @@ sub generate_run_parameters {
                     push @input_bam_paths,      $bam->{gnos_id}.'/'.$bam->{bam_file_name};
                 }
             }
-            
+
             push @donor_run_parameters,  { donor_id                    => $donor_id,
                                            project_code                => $project_code,
                                            dcc_specimen_type           => $dcc_specimen_type,
@@ -69,6 +69,7 @@ sub generate_run_parameters {
             my $submitter_specimen_id = $normal_alignment_status->{submitter_specimen_id};
             my $aliquot_id            = $tumour->{aliquot_id};   
 
+            my (@gnos_input_file_urls, @gnos_metadata_urls, @input_bam_paths);
             foreach my $bam (@{ $tumour->{unaligned_bams} }) {
                 push @gnos_input_file_urls, $bam->{gnos_repo}[0]."cghub/data/analysis/download/".$bam->{gnos_id};
                 push @gnos_metadata_urls,   $bam->{gnos_repo}[0]."cghub/metadata/analysisFull/".$bam->{gnos_id};
