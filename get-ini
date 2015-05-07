@@ -104,7 +104,7 @@ if ( $workflow_type eq 'vcf') {
     $GS = GlobalGNOS::Search->new( $elasticsearch_url, $workflow_name, $gnos_repo);
     $donors = $GS->get_donors( $donor_whitelist, $blacklist, $force, $number_of_donors );
 
-    my $workflow = Workflow::VCF->new($workflow_name);
+    my $workflow = Workflow::VCF->new($workflow_name, $gnos_repo);
     $schedule_donors = $workflow->generate_run_parameters($donors, $local_file_dir);
 } 
 elsif ($workflow_type eq 'bam') {
@@ -147,9 +147,12 @@ sub get_whitelist {
     if ($gnos_repo =~ m/https:\/\/gtrepo-(.*)\.annailabs\.com\/$/) {
         $gnos_name = $1;
     }
+    elsif ($gnos_repo eq 'https://cghub.ucsc.edu/') {
+         $gnos_name = 'cghub';
+    }
 
     unless($gnos_name) {
-        say "Cannot determin gnos name from $gnos_repo";
+        say "Cannot determine gnos name from $gnos_repo";
         exit;
     }
 

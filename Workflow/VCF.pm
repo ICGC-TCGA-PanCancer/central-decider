@@ -12,13 +12,26 @@ sub new {
     my $class = shift;
 
     my $self = bless {
-                      workflow_name => $_[0],
+                      workflow_name       => $_[0],
+                      download_gnos_repo  => $_[1]
                      }, $class;
     return $self;
 }
 
 sub generate_run_parameters {
    my ($class, $donor, $local_file_dir) = @_;
+   
+   my ($upload_gnos_url, $download_key, $upload_key, $gnos_repo);
+   if ($self->{download_gnos_repo} eq 'https://cghub.ucsc.edu/') {
+        $download_key = 'cghub';
+        $upload_key = 'TCGA';
+        $upload_gnos_url = 'https://gtrepo-osdc-tcga.annailabs.com/';
+   }
+   else {
+        $download_key = 'ICGC';
+        $upload_key = 'ICGC';
+        $upload_gnos_url =  $gnos_url;
+   }
 
    my @donors_run_parameters;
    foreach my $es_donor_id (keys %{$donor}) {
@@ -47,13 +60,18 @@ sub generate_run_parameters {
             push @tumour_aliquot_ids, $tumour->{aliquot_id};
        } 
   
-       my %run_parameters = ( donor_id => $donor_id,
-                              project_code => $project_code,
-                              tumour_aliquot_ids =>  join(',', @tumour_aliquot_ids),
+       my %run_parameters = ( donor_id            => $donor_id,
+                              project_code        => $project_code,
+                              workflow_name       => $self->{workflow_name},
+                              tumour_aliquot_ids  => join(',', @tumour_aliquot_ids),
                               tumour_analysis_ids => join(',', @tumour_analysis_ids),
-                              tumour_bams => join(',', @tumour_bams),
+                              tumour_bams         => join(',', @tumour_bams),
                               control_analysis_id => $control_analysis_id,
-                              control_bam => $control_bam,
+                              control_bam         => $control_bam,
+                              upload_gnos_url     => $upload_gnos_url,
+                              upload_gnos_key     => $upload_key,
+                              download_gnos_url   => $self->{download_gnos_repo},
+                              download_gnos_key   => $download_key
                             );
        push @donors_run_parameters, \%run_parameters;
    }
