@@ -8,7 +8,6 @@ use Carp::Always;
 
 use feature qw(say);
 
-use Search::Elasticsearch;
 use JSON;
 
 use Data::Dumper;
