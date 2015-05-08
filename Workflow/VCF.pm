@@ -15,11 +15,12 @@ sub new {
                       workflow_name       => $_[0],
                       download_gnos_repo  => $_[1]
                      }, $class;
+
     return $self;
 }
 
 sub generate_run_parameters {
-   my ($class, $donor, $local_file_dir) = @_;
+   my ($self, $donor, $local_file_dir) = @_;
   
    my ($upload_gnos_url, $download_key, $upload_key, $gnos_repo);
    if ($self->{download_gnos_repo} eq 'https://cghub.ucsc.edu/') {
@@ -30,7 +31,7 @@ sub generate_run_parameters {
    else {
         $download_key = 'ICGC';
         $upload_key = 'ICGC';
-        $upload_gnos_url =  $gnos_url;
+        $upload_gnos_url =  $self->{download_gnos_repo};
    }
 
    my @donors_run_parameters;
