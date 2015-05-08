@@ -5,5 +5,4 @@ requires 'CGI';
 requires 'IPC::System::Simple';
 requires 'Carp::Always';
 requires 'IO::Socket::SSL';
-requires 'Cature::Tiny;
-
+requires 'Cature::Tiny';
