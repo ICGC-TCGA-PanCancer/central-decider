@@ -67,6 +67,7 @@ sub get_donors {
                    }
                 ];
          push $es_query->{filter}{bool}{must}, {or => $term};
+
     } 
     else {
         $term =  {
@@ -181,6 +182,7 @@ sub get_donors {
 
     my $query_json = to_json($es_query);
     my $command = 'curl -XGET "'.$self->{elasticsearch_url}."_search?pretty\" -d \'".$query_json."\'";
+
     my $results_json = `$command`;
     my $results = from_json($results_json);
 
