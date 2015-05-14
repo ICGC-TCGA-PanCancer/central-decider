@@ -1,5 +1,8 @@
 package Workflow::VCF;
 
+use strict;
+use warnings;
+
 use feature qw(say);
 
 use IPC::System::Simple;

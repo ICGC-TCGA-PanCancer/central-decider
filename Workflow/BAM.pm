@@ -1,5 +1,8 @@
 package Workflow::BAM;
 
+use strict;
+use warnings;
+
 use feature qw(say);
 
 use IPC::System::Simple;
@@ -30,7 +33,7 @@ sub generate_run_parameters {
        if (($normal_alignment_status->{aligned} eq 'false') 
            && ($normal_alignment_status->{do_lane_count_and_bam_count_match} eq 'true') 
            && ($normal_alignment_status->{do_lane_counts_in_every_bam_entry_match} eq 'true')) {
-            my $aliquot_id            = $normal_alinment_status->{aliquot_id};
+            my $aliquot_id            = $normal_alignment_status->{aliquot_id};
             my $dcc_specimen_type     = $normal_alignment_status->{dcc_specimen_type};
             my $submitter_sample_id   = $normal_alignment_status->{submitter_sample_id};
             my $submitter_specimen_id = $normal_alignment_status->{submitter_specimen_id};
@@ -62,8 +65,8 @@ sub generate_run_parameters {
 
        my $tumour_alignment_status = $donor_info->{tumor_alignment_status};
 
-       @gnos_input_file_urls = '';
-       @input_bam_paths = '';
+       my @gnos_input_file_urls = '';
+       my @input_bam_paths = '';
        foreach my $tumour (@{$tumour_alignment_status}) {
             if (($tumour->{do_lane_count_and_bam_count_match} eq 'true') 
               && ($tumour->{do_lane_counts_in_every_bam_entry_match} eq 'true')

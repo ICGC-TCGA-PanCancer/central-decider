@@ -113,7 +113,7 @@ sub get_donors {
 
     if ($number_of_donors) {
          $es_query->{from} = 0;
-         $es_query->{size} = $query_donors->[0];
+         $es_query->{size} = $number_of_donors;
     }
     else {
         $term = {

@@ -1,5 +1,8 @@
 package Workflow::Transfer;
 
+use strict;
+use warnings;
+
 use feature qw(say);
 
 use IPC::System::Simple;
@@ -20,49 +23,44 @@ sub new {
 }
 
 sub generate_run_parameters {
-   my ($self, $donor, $local_file_dir) = @_;
+   my ($self, $donor) = @_;
   
-   my ($upload_gnos_url, $download_key, $upload_key, $gnos_repo);
+   # need to add checks based on flags to only include files that are not already in S3
    my @donors_run_parameters;
    foreach my $es_donor_id (keys %{$donor}) {
+       my @gnos_repos;
+       my @analysis_ids;
+
        my $donor_info = $donor->{$es_donor_id};
        my ($project_code, $donor_id) = split '::', $es_donor_id;
-       my $control_analysis_id = $donor_info->{normal_alignment_status}{aligned_bam}{gnos_id};
-       my $control_bam;
-       if ($local_file_dir) {
-           $control_bam = $local_file_dir.$control_analysis_id.'/'.$donor_info->{normal_alignment_status}{aligned_bam}{bam_file_name};
+
+       my $control_bam_analysis_id = $donor_info->{normal_alignment_status}{aligned_bam}{gnos_id};
+       if ($control_bam_analysis_id) {
+            my @array = @{$donor_info->{normal_alignment_status}{aligned_bam}{gnos_repo}};
+            my $gnos_repos = join('|', @{$donor_info->{normal_alignment_status}{aligned_bam}{gnos_repo}});
+            push @gnos_repos, $gnos_repos;
+            push @analysis_ids, $control_bam_analysis_id;
        }
-       else {
-           $control_bam = $donor_info->{normal_alignment_status}{aligned_bam}{bam_file_name}; 
-       }
-       my (@tumour_analysis_ids,@tumour_bams, @tumour_aliquot_ids);
 
        my $tumour; 
-       foreach $tumour (@{$donor_info->{tumor_alignment_status}}) {              
-            push @tumour_analysis_ids, $tumour->{aligned_bam}{gnos_id};
-            if ($local_file_dir) {
-                push @tumour_bams, $local_file_dir.$tumour->{aligned_bam}{gnos_id}.'/'.$tumour->{aligned_bam}{bam_file_name};
-            }
-            else {
-                push @tumour_bams, $tumour->{aligned_bam}{bam_file_name};
-            }
-
-            push @tumour_aliquot_ids, $tumour->{aliquot_id};
+       foreach $tumour (@{$donor_info->{tumor_alignment_status}}) {
+            my $gnos_repos = join('|', @{$tumour->{aligned_bam}{gnos_repo}});
+            push @gnos_repos, $gnos_repos;
+            push @analysis_ids, $tumour->{aligned_bam}{gnos_id};
        } 
   
+       if (defined $donor_info->{variant_calling_results}{sanger_variant_calling}) {
+            my $gnos_repos = join('|', @{$donor_info->{variant_calling_results}{sanger_variant_calling}{gnos_repo}});
+            push @gnos_repos, $gnos_repos;
+            push @analysis_ids,  $donor_info->{variant_calling_results}{sanger_variant_calling}{gnos_id};
+       }
+
        my %run_parameters = ( donor_id            => $donor_id,
                               project_code        => $project_code,
-                              workflow_name       => $self->{workflow_name},
-                              tumour_aliquot_ids  => join(':', @tumour_aliquot_ids),
-                              tumour_analysis_ids => join(':', @tumour_analysis_ids),
-                              tumour_bams         => join(':', @tumour_bams),
-                              control_analysis_id => $control_analysis_id,
-                              control_bam         => $control_bam,
-                              upload_gnos_url     => $upload_gnos_url,
-                              upload_gnos_key     => $upload_key,
-                              download_gnos_url   => $self->{download_gnos_repo},
-                              download_gnos_key   => $download_key
+                              gnos_repos          => join(',', @gnos_repos),
+                              analysis_ids        => join(',', @analysis_ids)
                             );
+
        push @donors_run_parameters, \%run_parameters;
    }
 

@@ -49,7 +49,7 @@ unless (defined($workflow_name) and (@donors || $number_of_donors || $cloud_env)
          USAGE:\n
          workflow-name: As would appear to seqware and in the metadata\n
          donor: Specifying a donor name\n
-         number_of_donors: To be used if you are not using whitelists. Specifies number of donors worth of results\n
+         number-of-donors: To be used if you are not using whitelists. Specifies number of donors worth of results\n
          gnos-repo: The repos you intend on pulling the aligned BAMs from\n
          local-file-dir: If specified this directory will be used to generate full paths to the bam files\n
          test: If specified the the database will not record the sample that has been scheduled\n
@@ -97,15 +97,17 @@ else {
 my $pcawg_whitelist_dir = "/home/ubuntu/git/pcawg-operations";
 
 my $donor_whitelist;
-unless (@donors || $number_of_donors) {
-    $donor_whitelist =  ($workflow_type eq 'vcf')? get_whitelist_vcf($workflow_name, $gnos_repo, $cloud_env) :
-                                                   get_whitelist_bam($workflow_name, $cloud_env);
-}
-else {
+if (@donors || $number_of_donors) {
     $donor_whitelist = \@donors;
 }
-
-
+else {
+    if ($workflow_type eq 'vcf') {
+        $donor_whitelist =  get_whitelist_vcf($workflow_name, $gnos_repo, $cloud_env);
+    }
+    elsif($workflow_type eq 'bam') {
+        $donor_whitelist = get_whitelist_bam($workflow_name, $cloud_env);
+    }
+}
 
 my ( $GS, $donors, $schedule_donors);
 if ( $workflow_type eq 'vcf') {
@@ -127,7 +129,7 @@ elsif ( $workflow_type eq 'transfer') {
      $donors = $GS->get_donors( \@donors, $blacklist, $force, $number_of_donors);
 
      my $workflow = Workflow::Transfer->new($workflow_name);
-     $schedule_donors = $workflow->generate_run_parameters($donors, $local_file_dir);
+     $schedule_donors = $workflow->generate_run_parameters($donors);
 }
 
 add_donors_scheduled($dbh, $schedule_donors, $workflow_name, $gnos_repo) unless (defined $test);
