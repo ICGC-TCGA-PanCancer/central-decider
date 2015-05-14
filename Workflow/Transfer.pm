@@ -37,20 +37,23 @@ sub generate_run_parameters {
        my $control_bam_analysis_id = $donor_info->{normal_alignment_status}{aligned_bam}{gnos_id};
        if ($control_bam_analysis_id) {
             my @array = @{$donor_info->{normal_alignment_status}{aligned_bam}{gnos_repo}};
-            my $gnos_repos = join('|', @{$donor_info->{normal_alignment_status}{aligned_bam}{gnos_repo}});
+ #           my $gnos_repos = join('|', @{$donor_info->{normal_alignment_status}{aligned_bam}{gnos_repo}});
+            my $gnos_repos = $donor_info->{normal_alignment_status}{aligned_bam}{gnos_repo}[0];
             push @gnos_repos, $gnos_repos;
             push @analysis_ids, $control_bam_analysis_id;
        }
 
        my $tumour; 
        foreach $tumour (@{$donor_info->{tumor_alignment_status}}) {
-            my $gnos_repos = join('|', @{$tumour->{aligned_bam}{gnos_repo}});
+  #          my $gnos_repos = join('|', @{$tumour->{aligned_bam}{gnos_repo}});
+            my $gnos_repos = $tumour->{aligned_bam}{gnos_repo}[0];
             push @gnos_repos, $gnos_repos;
             push @analysis_ids, $tumour->{aligned_bam}{gnos_id};
        } 
   
        if (defined $donor_info->{variant_calling_results}{sanger_variant_calling}) {
-            my $gnos_repos = join('|', @{$donor_info->{variant_calling_results}{sanger_variant_calling}{gnos_repo}});
+ #           my $gnos_repos = join('|', @{$donor_info->{variant_calling_results}{sanger_variant_calling}{gnos_repo}}); This should be used if you want to make logic on the client side of what repo to use
+            my $gnos_repos = $donor_info->{variant_calling_results}{sanger_variant_calling}{gnos_repo}[0];
             push @gnos_repos, $gnos_repos;
             push @analysis_ids,  $donor_info->{variant_calling_results}{sanger_variant_calling}{gnos_id};
        }
