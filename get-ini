@@ -41,15 +41,18 @@ my $test = $q->param('test');
 my $force = $q->param('force');
 my $cloud_env = $q->param('cloud-env');
 my $local_file_dir = $q->param('local-file-dir');
-$local_file_dir =~ s!/*$!/! if ($local_file_dir);; # Adds slash if non at end of directory
+my $vm_location_code = $q->param('vm-location-code');
+
+$local_file_dir =~ s!/*$!/! if ($local_file_dir);; # :Adds slash if non at end of directory
 $gnos_repo =~ s!/*$!/!; # Adds slash if non at end of URL
 
-unless (defined($workflow_name) and (@donors || $number_of_donors || $cloud_env) and defined($gnos_repo)) {
+unless (defined($workflow_name) and (@donors || $number_of_donors || $cloud_env)) {
     say "Parameters incorrect.\n
          USAGE:\n
          workflow-name: As would appear to seqware and in the metadata\n
          donor: Specifying a donor name\n
          number-of-donors: To be used if you are not using whitelists. Specifies number of donors worth of results\n
+         vm-location-code: If specified the central decider will check to make sure the location code being used is on the list of locations\n
          gnos-repo: The repos you intend on pulling the aligned BAMs from\n
          local-file-dir: If specified this directory will be used to generate full paths to the bam files\n
          test: If specified the the database will not record the sample that has been scheduled\n
@@ -58,6 +61,27 @@ unless (defined($workflow_name) and (@donors || $number_of_donors || $cloud_env)
          EXAMPLE:\n
          http://localhost/cgi-bin/central-decider/get-ini?workflow-name=SangerPancancerCgpCnIndelSnvStr&donor=BOCA-UK::CGP_donor_1635843&donor=BOCA-UK::CGP_donor_1635844&gnos-repo=https://gtrepo-ebi.annailabs.com/";
     exit;
+}
+
+if ($vm_location_code) {
+    open my $fh, '<', '/home/ubuntu/git/pcawg-operations/scripts/site_location.txt';
+  
+    my $line;
+    my %location_names;
+    while ($line = <$fh>) {
+        my ($location_name, $location_desctription) = split /\s+/, $line;
+        $location_names{$location_name} = 1;
+    }
+
+    if (!$location_names{$vm_location_code}) {
+        say "possiblenames are:";
+        foreach my $key ( keys %location_names) {
+            say "$key";
+        }
+        die;
+    }
+
+    close ($fh);
 }
 
 my $cfg = new Config::Simple('workflow_map.cfg');
