@@ -30,7 +30,7 @@ sub generate_run_parameters {
        if (($normal_alignment_status->{aligned} eq 'false') 
            && ($normal_alignment_status->{do_lane_count_and_bam_count_match} eq 'true') 
            && ($normal_alignment_status->{do_lane_counts_in_every_bam_entry_match} eq 'true')) {
-            my $aliquot_id            = $normal_alinment_status->{aliquote_id};
+            my $aliquot_id            = $normal_alinment_status->{aliquot_id};
             my $dcc_specimen_type     = $normal_alignment_status->{dcc_specimen_type};
             my $submitter_sample_id   = $normal_alignment_status->{submitter_sample_id};
             my $submitter_specimen_id = $normal_alignment_status->{submitter_specimen_id};
@@ -47,7 +47,7 @@ sub generate_run_parameters {
                 }
             }
 
-            push @donor_run_parameters,  { donor_id                    => $donor_id,
+            push @donors_run_parameters,  { donor_id                    => $donor_id,
                                            project_code                => $project_code,
                                            sample_type                 => "normal",
                                            dcc_specimen_type           => $dcc_specimen_type,
@@ -69,9 +69,9 @@ sub generate_run_parameters {
               && ($tumour->{do_lane_counts_in_every_bam_entry_match} eq 'true')
               && ($tumour->{aligned} eq 'false')) {
     
-                my $dcc_specimen_type     = $normal_alignment_status->{dcc_specimen_type};
-                my $submitter_sample_id   = $normal_alignment_status->{submitter_sample_id};
-                my $submitter_specimen_id = $normal_alignment_status->{submitter_specimen_id};
+                my $dcc_specimen_type     = $tumour->{dcc_specimen_type};
+                my $submitter_sample_id   = $tumour->{submitter_sample_id};
+                my $submitter_specimen_id = $tumour->{submitter_specimen_id};
                 my $aliquot_id            = $tumour->{aliquot_id};   
     
                 my (@gnos_input_file_urls, @gnos_metadata_urls, @input_bam_paths);
@@ -85,7 +85,7 @@ sub generate_run_parameters {
                         push @input_bam_paths, $bam->{gnos_id}.'/'.$bam->{bam_file_name};
                     }
                 }
-      
+
                 my %run_parameters = ( donor_id                 => $donor_id,
                                        project_code             => $project_code,
                                        sample_type              => "tumour",
@@ -95,9 +95,9 @@ sub generate_run_parameters {
                                        aliquot_id               => $aliquot_id,
                                        gnos_input_file_urls     => join(',', @gnos_input_file_urls),
                                        gnos_input_metadata_urls => join(',', @gnos_metadata_urls),
-                                       input_bam_paths          => join(',', @input_bam_paths),
+                                       input_bam_paths          => join(',', @input_bam_paths)
                                      );
-    
+
                push @donors_run_parameters, \%run_parameters;
            }
        }

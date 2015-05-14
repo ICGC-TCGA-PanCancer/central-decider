@@ -18,8 +18,10 @@ use Carp::Always;
 use Config::Simple;
 
 use GlobalGNOS::Search;
+
 use Workflow::VCF;
 use Workflow::BAM;
+use Workflow::Transfer;
 
 use Fcntl qw(:flock);
 
@@ -113,12 +115,19 @@ if ( $workflow_type eq 'vcf') {
     my $workflow = Workflow::VCF->new($workflow_name, $gnos_repo);
     $schedule_donors = $workflow->generate_run_parameters($donors, $local_file_dir);
 } 
-elsif ($workflow_type eq 'bam') {
+elsif ( $workflow_type eq 'bam') {
     $GS = GlobalGNOS::Search->new( $elasticsearch_url, $workflow_name);
     $donors = $GS->get_donors( \@donors, $blacklist, $force, $number_of_donors);
 
     my $workflow = Workflow::BAM->new($workflow_name);
     $schedule_donors = $workflow->generate_run_parameters($donors, $local_file_dir);
+}
+elsif ( $workflow_type eq 'transfer') {
+     $GS = GlobalGNOS::Search->new( $elasticsearch_url, $workflow_name);
+     $donors = $GS->get_donors( \@donors, $blacklist, $force, $number_of_donors);
+
+     my $workflow = Workflow::Transfer->new($workflow_name);
+     $schedule_donors = $workflow->generate_run_parameters($donors, $local_file_dir);
 }
 
 add_donors_scheduled($dbh, $schedule_donors, $workflow_name, $gnos_repo) unless (defined $test);

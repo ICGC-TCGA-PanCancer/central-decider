@@ -69,6 +69,17 @@ sub get_donors {
          push $es_query->{filter}{bool}{must}, {or => $term};
 
     } 
+    elsif ($self->{workflow_name} eq 'Workflow_GNOS_to_S3') {
+        $term =  {
+                 "terms" => {
+                     "flags.are_all_file_in_s3" => [
+                             "T"
+                     ]
+                 }
+              };
+        push $es_query->{filter}{bool}{"must_not"}, $term;
+
+    }
     else {
         $term =  {
                  "terms" => {
@@ -165,7 +176,7 @@ sub get_donors {
                    };
         push $es_query->{filter}{bool}{must}, $term;
     }
-    elsif ($self->{workflow_name} ne 'Workflow_Bundle_BWA') {
+    elsif ($self->{workflow_name} ne 'Workflow_Bundle_BWA' && $self->{workflow_name} ne 'Workflow_GNOS_to_S3') {
         die "Incorrect workflow_name: $self->{workflow_name}";
     }
 
