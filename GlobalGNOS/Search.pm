@@ -24,6 +24,7 @@ sub new {
 
 sub get_donors {
     my ($self, $query_donors, $filter_donors, $force, $number_of_donors) = @_;
+
     my $es_query = {
       "filter" => {
          "bool" => {

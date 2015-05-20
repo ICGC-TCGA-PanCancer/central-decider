@@ -142,15 +142,16 @@ if ( $workflow_type eq 'vcf') {
     $schedule_donors = $workflow->generate_run_parameters($donors, $local_file_dir);
 } 
 elsif ( $workflow_type eq 'bam') {
+
     $GS = GlobalGNOS::Search->new( $elasticsearch_url, $workflow_name);
-    $donors = $GS->get_donors( \@donors, $blacklist, $force, $number_of_donors);
+    $donors = $GS->get_donors( $donor_whitelist, $blacklist, $force, $number_of_donors);
 
     my $workflow = Workflow::BAM->new($workflow_name);
     $schedule_donors = $workflow->generate_run_parameters($donors, $local_file_dir);
 }
 elsif ( $workflow_type eq 'transfer') {
      $GS = GlobalGNOS::Search->new( $elasticsearch_url, $workflow_name);
-     $donors = $GS->get_donors( \@donors, $blacklist, $force, $number_of_donors);
+     $donors = $GS->get_donors( $donor_whitelist, $blacklist, $force, $number_of_donors);
 
      my $workflow = Workflow::Transfer->new($workflow_name);
      $schedule_donors = $workflow->generate_run_parameters($donors);
