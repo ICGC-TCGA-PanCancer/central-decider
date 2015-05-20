@@ -37,6 +37,8 @@ sub generate_run_parameters {
         $upload_gnos_url =  $self->{download_gnos_repo};
    }
 
+   my $workflow_name = $self->{workflow_name};
+
    my @donors_run_parameters;
    foreach my $es_donor_id (keys %{$donor}) {
        my $donor_info = $donor->{$es_donor_id};
@@ -63,10 +65,15 @@ sub generate_run_parameters {
 
             push @tumour_aliquot_ids, $tumour->{aliquot_id};
        } 
-  
-       my %run_parameters = ( donor_id            => $donor_id,
+
+       my %run_parameters;
+       if ($workflow_name eq 'SangerPancancerCgpCnIndelSnvStr') {
+
+          $upload_gnos_url = $1 if ($upload_gnos_url =~ /(.*)\/$/); #removes trailing slash if it exists
+
+          %run_parameters = ( donor_id            => $donor_id,
                               project_code        => $project_code,
-                              workflow_name       => $self->{workflow_name},
+                              workflow_name       => $workflow_name,
                               tumour_aliquot_ids  => join(':', @tumour_aliquot_ids),
                               tumour_analysis_ids => join(':', @tumour_analysis_ids),
                               tumour_bams         => join(':', @tumour_bams),
@@ -77,6 +84,22 @@ sub generate_run_parameters {
                               download_gnos_url   => $self->{download_gnos_repo},
                               download_gnos_key   => $download_key
                             );
+       }
+       else {
+          %run_parameters = ( donor_id            => $donor_id,
+                              project_code        => $project_code,
+                              workflow_name       => $workflow_name,
+                              tumour_aliquot_ids  => join(',', @tumour_aliquot_ids),
+                              tumour_analysis_ids => join(',', @tumour_analysis_ids),
+                              tumour_bams         => join(',', @tumour_bams),
+                              control_analysis_id => $control_analysis_id,
+                              control_bam         => $control_bam,
+                              upload_gnos_url     => $upload_gnos_url,
+                              upload_gnos_key     => $upload_key,
+                              download_gnos_url   => $self->{download_gnos_repo},
+                              download_gnos_key   => $download_key
+                            );
+       }
        push @donors_run_parameters, \%run_parameters;
    }
 
