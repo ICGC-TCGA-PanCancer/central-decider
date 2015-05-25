@@ -52,13 +52,17 @@ With this method the default is for the decider to record that information was s
       
 
 ##Get URL parameters
+|  parameter | values description |
+|------------|--------------------|
+| workflow-name | As would appear to seqware and in the metadata |
+| donor| Specifying a donor name |
+| number-of-donors | To be used if you are not using whitelists. Specifies number of donors worth of results |
+| vm-location-code | If specified the central decider will check to make sure the location code being  used is on the list of locations |
+| gnos-repo | The repos you intend on pulling the aligned BAMs from |
+| local-file-dir | If specified this directory will be used to generate full paths to the bam files |
+| test | If specified the the database will not record the sample that has been scheduled |
+| force | To be used when you want it to return INI files for workflows that have already been run |
 
-         workflow-name: as would appear to seqware and in the metadata
-         donor: can either be a number for the number of results or a list of donors
-         number_of_donors: To be used if you are not using whitelists. Specifies number of donors worth of results
-         gnos-repo: the repos you intend on pulling the aligned BAMs from
-         test: if specified the the database will not record the sample that has been scheduled
-         force: if specified it will return samples wether or not they have already been completed 
      
 ##Sample CGI URL
      http://<hostname>/cgi-bin/central-decider/get-ini?workflow-name=SangerPancancerCgpCnIndelSnvStr&donor=1&gnos-repo=https://gtrepo-ebi.annailabs.com/
