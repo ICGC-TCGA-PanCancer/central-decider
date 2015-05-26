@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ICGC-TCGA-PanCancer/central-decider.svg?branch=develop)](https://travis-ci.org/ICGC-TCGA-PanCancer/central-decider)
+
 # Central Decider
 This tool is intended to be used to schedule VCF and BWA workflows for the PanCancer project. The tool pulls information from the centralized Elasticsearch database and keeps track of what has been scheduled in one central location. 
 
