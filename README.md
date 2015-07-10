@@ -22,7 +22,8 @@ With this method the default is for the decider to record that information was s
 ## installation
 
 ###Environment
-      Spin up a ubuntu 14.04 VM. This interface requires minimal CPU and RAM. I have been using a Micro instance on AWS to run the decider.
+
+Spin up a ubuntu 14.04 VM. This interface requires minimal CPU and RAM. I have been using a Micro instance on AWS to run the decider.
       
 ###Installing Packages
       sudo apt-get update
