@@ -37,7 +37,7 @@ With this method the default is for the decider to record that information was s
 
 ##Adding Apache authentication 
       sudo htpasswd -c /var/passwd/passwords
-      sudo vim /etc/apache2/httpd.conf
+      sudo vim /etc/apache2/conf-enabled/serve-cgi-bin.conf
       Addto directory:
             AuthType Basic
             AuthName "Pancancer Metadata"
